@@ -47,9 +47,8 @@ Jika berhasil, prompt terminal Anda akan menunjukkan `(venv)` di depan nama fold
 
 Setelah virtual environment aktif, install semua dependensi yang diperlukan oleh proyek dengan perintah berikut:
 
-    ```
     pip install -r requirements.txt
-    ```
+
 
 Ini akan menginstal semua paket yang tercantum dalam file `requirements.txt`.
 
@@ -57,9 +56,7 @@ Ini akan menginstal semua paket yang tercantum dalam file `requirements.txt`.
 
 Proyek ini menggunakan **Streamlit** untuk antarmuka pengguna (UI). Setelah dependensi terinstal, Anda dapat menjalankan aplikasi dengan perintah berikut:
 
-    ```
     streamlit run app/main.py
-    ```
 
 Aplikasi akan mulai berjalan, dan Streamlit akan memberi Anda URL untuk mengakses aplikasi melalui browser.
 
@@ -67,9 +64,7 @@ Aplikasi akan mulai berjalan, dan Streamlit akan memberi Anda URL untuk mengakse
 
 Setelah selesai bekerja dengan aplikasi, Anda dapat menonaktifkan virtual environment dengan perintah berikut:
 
-    ```
-    deactivate
-    ```
+    deactive
 
 Ini akan mengembalikan Anda ke lingkungan Python global.
 
@@ -79,9 +74,7 @@ Jika Anda mengalami masalah saat instalasi atau menjalankan aplikasi, coba beber
 
 - **Periksa versi Python**: Pastikan Anda menggunakan versi Python yang tepat dengan menjalankan perintah:
 
-    ```
     python --version
-    ```
 
 - **Cek dependensi**: Pastikan semua dependensi di `requirements.txt` telah terinstal dengan benar. Anda bisa mencoba menginstal ulang dependensi:
 
