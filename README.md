@@ -15,9 +15,7 @@ Sebelum memulai, pastikan sistem Anda memenuhi persyaratan berikut:
 
 Langkah pertama adalah meng-clone repositori ini ke mesin lokal Anda. Gunakan perintah berikut:
 
-    ```
     git clone https://github.com/knittotextile/knitto-research-chatbot-ai.git
-    ```
 
 Setelah repositori berhasil di-clone, masuk ke dalam folder proyek:
 
