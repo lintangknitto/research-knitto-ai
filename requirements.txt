@@ -6,3 +6,7 @@ pytz
 sentence_transformers
 faiss-cpu
 meilisearch
+fastapi
+uvicorn
+mysql-connector-python==8.0.30
+python-dotenv

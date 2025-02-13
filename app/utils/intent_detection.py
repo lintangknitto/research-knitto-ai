@@ -1,8 +1,5 @@
-import google.generativeai as genai
+from config.model_client import MODEL
 import streamlit as st
-from config.settings import GOOGLE_API_KEY
-
-genai.configure(api_key=GOOGLE_API_KEY)
 
 
 def detect_intent(question: str):
@@ -12,15 +9,17 @@ def detect_intent(question: str):
         - greetings: jika pengguna memberikan sapaan seperti "halo", "hi", "selamat pagi", atau mengenalkan dirinya.
         - thanks: jika pengguna mengucapkan terima kasih seperti "terima kasih", "makasih", atau sejenisnya.
         - stok: jika pengguna bertanya tentang stok kain.
-        - profile: jika pengguna bertanya tentang siapa kamu atau ingin mengetahui tentang Kanita.
-        - help_info: jika pengguna bertanya tentang layanan, bantuan, cabang, atau informasi umum seputar Knitto Textile.
+        - faq: jika pengguna bertanya tentang layanan, bantuan, cabang, atau informasi umum seputar Knitto Textile.
+        - cek_resi: jika pengguna bertanya yang berkaitan dengan resi.
+        - status_order: jika pengguna bertanya yang berkaitan dengan status order.
+        - price_list: jika pengguna bertanya tentang semua yang berkaitan dengan price list, harga atau yang serupa.
+        - kanita: jika pengguna bertanya tentang diri kamu atau identitas kamu.
         - unknown: jika pertanyaan tidak cocok dengan intent di atas.
 
-        Balas hanya dengan satu kata intent dari daftar di atas, tanpa tambahan kata atau penjelasan.
+        Balas hanya dengan satu kata intent dari daftar di atas, tanpa tambahan kata atau penjelasan. Jangan pernah membuat intens selain diatas
     """
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content([prompt, question])
+        response = MODEL.generate_content([prompt, question])
         return response.text.strip().lower()
     except Exception as e:
         st.error(f"Error detecting intent: {e}")

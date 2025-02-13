@@ -1,7 +1,6 @@
 import time
 import streamlit as st
 from services.genai_service import generate_answer_without_embed
-from helpers.get_time import get_time_of_day
 
 
 def initialize_session():
@@ -32,12 +31,17 @@ def main():
     question = st.text_input("Masukkan pertanyaan Anda:")
 
     if question:
-        answer = generate_answer_without_embed(question, st.session_state.first_question)
+        answer = generate_answer_without_embed(
+            question, st.session_state.first_question
+        )
 
         st.session_state.conversation_history.append(
             {"user": question, "kanita": answer}
         )
 
+        st.session_state.first_question = False
+
+        # Menampilkan jawaban dari Kanita
         st.write("Jawaban dari Kanita:")
         type_effect(answer, speed=0.01)
 
