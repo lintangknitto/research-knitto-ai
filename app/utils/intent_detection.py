@@ -12,7 +12,6 @@ def detect_intent(question: str):
         - greetings: jika pengguna memberikan sapaan seperti "halo", "hi", "selamat pagi", atau mengenalkan dirinya.
         - thanks: jika pengguna mengucapkan terima kasih seperti "terima kasih", "makasih", atau sejenisnya.
         - stok: jika pengguna bertanya tentang stok kain.
-        - jenis_kain: jika pengguna bertanya tentang jenis kain, warna kain, spesifikasi kain, atau kualitasnya.
         - profile: jika pengguna bertanya tentang siapa kamu atau ingin mengetahui tentang Kanita.
         - help_info: jika pengguna bertanya tentang layanan, bantuan, cabang, atau informasi umum seputar Knitto Textile.
         - unknown: jika pertanyaan tidak cocok dengan intent di atas.
