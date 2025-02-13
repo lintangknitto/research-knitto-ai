@@ -49,12 +49,11 @@ KANITA_MEMORY = [
 ]
 
 KANITA_MEMORY_JSON = {
-    "profile": {
-        "name": "Kanita",
-        "role": "Virtual Assistant",
-        "company": "PT. Knitto Textile Indonesia",
-        "description": "Asisten virtual yang membantu menjawab pertanyaan tentang kain, stok, warna, dan cabang PT. Knitto Textile Indonesia.",
-    },
+    "profile": [
+        "Halo! Saya Kanita, asisten virtual PT. Knitto Textile Indonesia. 😊 Saya di sini untuk membantu Anda mendapatkan informasi seputar produk dan layanan kami. Ada yang bisa saya bantu?",
+        "Hai! Saya Kanita, asisten virtual PT. Knitto Textile Indonesia. Saya siap membantu Anda menjawab berbagai pertanyaan tentang produk tekstil kami atau layanan yang kami tawarkan. Apa yang bisa saya bantu?",
+        "Selamat datang! Saya Kanita, asisten virtual PT. Knitto Textile Indonesia. 😊 Saya di sini untuk mempermudah Anda dalam mendapatkan informasi tentang produk kami dan berbagai hal lainnya. Apa yang ingin Anda ketahui?",
+    ],
     "greetings": [
         "Halo! Saya Kanita, asisten virtual PT. Knitto Textile Indonesia. 😊 Ada yang bisa saya bantu?",
         "Hai! Saya Kanita, siap membantu kakak. Silakan tanyakan apa saja tentang produk kami. 😊",
@@ -118,7 +117,11 @@ KANITA_MEMORY_JSON = {
         "Hmm... Saya belum bisa menjawab pertanyaan itu. Mungkin kakak bisa bertanya dengan cara lain?",
     ],
     "stok": [
-        {"nama": "COMBED 30S", "warna": "HIJAU", "stok": 10, "satuan": "ROLL"},
-        {"nama": "COMBED 30S", "warna": "BIRU", "stok": 10, "satuan": "ROLL"},
+        {"nama": "COMBED 30S", "warna": "HIJAU", "stok": 10, "satuan": "ROLL", "cabang": "HOLIS"},
+        {"nama": "COMBED 30S", "warna": "BIRU", "stok": 10, "satuan": "ROLL", "cabang": "KEBON JUKUT"},
+        {"nama": "COMBED 30S", "warna": "HIJAU", "stok": 10, "satuan": "Kg", "cabang": "HOLIS"},
+        {"nama": "COMBED 30S", "warna": "BIRU", "stok": 10, "satuan": "Kg", "cabang": "KEBON JUKUT"},
+        {"nama": "COMBED 24S", "warna": "BIRU", "stok": 10, "satuan": "Kg", "cabang": "KEBON JUKUT"},
     ],
+    "data_kain": ["COMBED 30S", "COMBED 24S", "CARDED 24S"],
 }

@@ -44,27 +44,31 @@ MODEL = genai.GenerativeModel("gemini-1.5-flash")
 #         return f"Selamat {time_of_day}, terjadi kesalahan dalam menjawab pertanyaan Anda: {e}"
 
 
-def generate_answer_without_embed(question: str):
+def generate_answer_without_embed(question: str, first: bool):
     """Menghasilkan jawaban berdasarkan memori (KANITA_MEMORY) dan intent pengguna."""
     time_of_day = get_time_of_day()
-
+    print("first", first)
     intent = detect_intent(question)
     memory = KANITA_MEMORY_JSON[intent]
     print("Intent terdeteksi: ", intent)
     print("memory", memory)
+
+    
     prompt = f"""
+        Kamu adalah Kanita, Virtual Assistant dari PT. Knitto Textile Indonesia.
         Jawablah pertanyaan berikut dengan konteks yang sudah diberikan, dan buat jawaban yang interaktif dengan mengembangkan konteks:
 
         Pertanyaan: "{question}"
         Konteks Jawaban: "{memory}"
 
-        Gunakan bahasa yang ramah dan profesional, dan pastikan lagi kalo kamu ini kanita jadi jawablah seperti profesional dalam pelayanan interaktif dan menjawab serta tidak terlalu kaku.
+        Gunakan bahasa yang ramah dan profesional, dan pastikan lagi kalo kamu ini kanita jadi jawablah seperti profesional dalam pelayanan interaktif dan menjawab serta tidak terlalu kaku dan tidak terlalu formal.
 
         PERHATIAN:
         - Hindari : Berdasarkan data kami, berdasarkan informasi yang kami miliki, atau berdasarkan informasi yang kami punya.
         - Jangan beritahu apakah kamu Kanita atau tidak, karena itu akan menambahkan kaku.
         - Jika tidak ada jawaban yang sesuai, beritahu saya untuk menganalisis kembali dan mencari jawaban yang lebih tepat.
-    """
+        - Ketika menjawab gunakan emoji agar lebih interaktif
+        """
 
     try:
         response = MODEL.generate_content([prompt])

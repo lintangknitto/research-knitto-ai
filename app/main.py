@@ -11,16 +11,6 @@ def initialize_session():
         st.session_state.first_question = True
 
 
-def add_greeting_if_needed(response):
-    """Menambahkan salam hanya jika ini adalah pertanyaan pertama dalam percakapan."""
-    if st.session_state.first_question:
-        time_of_day = get_time_of_day()
-        greeting = f"Selamat {time_of_day}! 😊 "
-        response = greeting + response
-        st.session_state.first_question = False
-    return response
-
-
 def type_effect(text, speed=0.1):
     """Efek mengetik teks secara perlahan di Streamlit."""
     text_placeholder = st.empty()
@@ -42,10 +32,7 @@ def main():
     question = st.text_input("Masukkan pertanyaan Anda:")
 
     if question:
-        # intent = detect_intent(question)
-        # print("Intent terdeteksi: ", intent)
-        answer = generate_answer_without_embed(question)
-        answer = add_greeting_if_needed(answer)
+        answer = generate_answer_without_embed(question, st.session_state.first_question)
 
         st.session_state.conversation_history.append(
             {"user": question, "kanita": answer}
