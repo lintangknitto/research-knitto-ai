@@ -41,7 +41,6 @@ def main():
 
         st.session_state.first_question = False
 
-        # Menampilkan jawaban dari Kanita
         st.write("Jawaban dari Kanita:")
         type_effect(answer, speed=0.01)
 

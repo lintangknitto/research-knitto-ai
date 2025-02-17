@@ -35,19 +35,22 @@ stopwords_id = [
     "mengenai",
     "stok",
     "kain",
-    "status",
-    "order",
     "no order",
     "no",
     "cariin",
     "nomernya",
     "carikan",
     "resi",
+    "cek",
+    "melakukan",
+    "cabang",
+    "berapa"
 ]
 
 tema_labels = {
     "aksesoris": "Aksesoris",
     "cacat_kain": "Cacat Kain",
+    "cara order": "Cara Order",
     "cara_order": "Cara Order",
     "complain": "Complain",
     "harga": "Harga",
@@ -81,6 +84,8 @@ tema_labels = {
     "tentang_knitto": "Tentang Knitto",
     "warna": "Warna",
     "web_customer_portal_2": "Web Customer Portal 2",
+    "fitur": "Fitur",
+    "informasi": "Fitur",
 }
 
 
@@ -90,6 +95,23 @@ def get_no_order(text):
         return match.group()
     else:
         return ""
+
+def get_no_hp(text):
+    match = re.search(r"62\d{11}", text)
+    if match:
+        return match.group()
+    else:
+        return ""
+
+
+def get_cabang(text):
+    list_cabang = ["HOLIS", "KEBON JUKUT", "SUDIRMAN", "HOS COKROAMINOTO", "SOEKARNO"]
+
+    for cabang in list_cabang:
+        if re.search(r"\b" + re.escape(cabang) + r"\b", text, re.IGNORECASE):
+            return cabang
+
+    return ""
 
 
 def preprocess_question(question: str) -> str:
@@ -106,31 +128,35 @@ def get_memory_from_meili(intent: str, question: str):
     try:
         index = client.index(intent)
         query = preprocess_question(question)
+        filter_condition = ""
         print(f"Query yang diproses: {query}")
+        print('intent', intent)
 
-        if intent == "a_greetings" or intent == 'a_kanita':
+        if intent == "a_greetings" or intent == "a_kanita":
             query = ""
-
-        if intent == "a_faq":
-            filter_condition = ""
+        elif intent == "a_notfound":
+            no_order = get_no_order(query)
+            if not no_order:
+                filter_condition = f"pertanyaan CONTAINS 'Status Order No Order'"
+        elif intent == "a_faq":
             for key, label in tema_labels.items():
                 if key in query:
                     filter_condition = f"tema = '{label}'"
                     break
-            if not filter_condition:
-                filter_condition = f"tema = 'Umum'"
-
-            print(filter_condition)
-            results = index.search(query, {"filter": filter_condition})
         elif intent == "a_status_order" or intent == "a_cek_resi":
             no_order = get_no_order(query)
-            filter_condition = f"no_order = '{no_order}' OR no_hp = '{query}'"
-
-            print(filter_condition)
-            results = index.search(query, {"filter": filter_condition})
+            no_hp = get_no_hp(query)
+            filter_condition = f"no_order = '{no_order}' OR no_hp = '{no_hp}'"
+            query = ""
+        elif intent == "a_stok":
+            cabang = get_cabang(question)
+            if cabang :
+                filter_condition = f"cabang = {cabang}"
         else:
-            results = index.search(query)
-
+            pass
+      
+        results = index.search(query, {"limit": 20, "filter": filter_condition})
+        
         return results["hits"]
 
     except Exception as e:
