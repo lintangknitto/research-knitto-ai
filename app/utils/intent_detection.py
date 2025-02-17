@@ -1,4 +1,4 @@
-from config.model_client import MODEL
+from config.model_client import AIModels
 import streamlit as st
 
 
@@ -22,8 +22,8 @@ def detect_intent(question: str):
     full_prompt = prompt + "\nPertanyaan: " + question + "\nIntent:"
 
     try:
-        response = MODEL.generate_content([full_prompt])
-        intent = response.text.strip().lower()
+        ai_models = AIModels()
+        intent = ai_models.generate_gemini_response(prompt=full_prompt)
 
         valid_intents = [
             "greetings",

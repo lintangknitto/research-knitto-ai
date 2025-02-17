@@ -1,6 +1,8 @@
 import meilisearch
 from config.settings import MEILISEARCH_URL, MEILISEARCH_API_KEY
 import re
+from utils.spellchecker import correct_typo_with_rapidfuzz
+from rapidfuzz import process
 
 client = meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY)
 
@@ -44,7 +46,8 @@ stopwords_id = [
     "cek",
     "melakukan",
     "cabang",
-    "berapa"
+    "berapa",
+    "harga",
 ]
 
 tema_labels = {
@@ -96,6 +99,7 @@ def get_no_order(text):
     else:
         return ""
 
+
 def get_no_hp(text):
     match = re.search(r"62\d{11}", text)
     if match:
@@ -122,7 +126,31 @@ def preprocess_question(question: str) -> str:
     return question
 
 
-def get_memory_from_meili(intent: str, question: str):
+from rapidfuzz import process
+
+
+from rapidfuzz import process
+
+
+def get_kain(question: str):
+    try:
+        question = correct_typo_with_rapidfuzz(question)
+        list_jenis_kain = ["combed 30s", "combed 20s", "combed 40s"]
+
+        matches = process.extract(
+            query=question, choices=list_jenis_kain, limit=5, score_cutoff=80
+        )
+
+        best_matches = [match[0] for match in matches]
+
+        return best_matches if best_matches else []
+
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
+        return []
+
+
+def get_memory_from_meili(intent: str, question: str, first_intent=""):
     """Mengambil data dari MeiliSearch berdasarkan intent yang diberikan sebagai nama indeks."""
 
     try:
@@ -130,14 +158,20 @@ def get_memory_from_meili(intent: str, question: str):
         query = preprocess_question(question)
         filter_condition = ""
         print(f"Query yang diproses: {query}")
-        print('intent', intent)
+        print("intent", intent)
 
         if intent == "a_greetings" or intent == "a_kanita":
             query = ""
         elif intent == "a_notfound":
             no_order = get_no_order(query)
-            if not no_order:
-                filter_condition = f"pertanyaan CONTAINS 'Status Order No Order'"
+            query = ""
+
+            if first_intent == "a_status_order":
+                filter_condition = f"fitur = 'status_order'"
+            elif first_intent == "a_cek_resi":
+                filter_condition = f"fitur = 'cek_resi'"
+            elif first_intent == "a_stok":
+                filter_condition = f"fitur = 'cek_stok'"
         elif intent == "a_faq":
             for key, label in tema_labels.items():
                 if key in query:
@@ -148,15 +182,25 @@ def get_memory_from_meili(intent: str, question: str):
             no_hp = get_no_hp(query)
             filter_condition = f"no_order = '{no_order}' OR no_hp = '{no_hp}'"
             query = ""
-        elif intent == "a_stok":
+        elif intent == "a_stok" or intent == "a_price_list":
             cabang = get_cabang(question)
-            if cabang :
-                filter_condition = f"cabang = {cabang}"
+            kain = get_kain(question)
+            conditions = []
+
+            if cabang:
+                conditions.append(f"cabang = '{cabang}'")
+
+            # if kain:
+            #     kain_conditions = [f"kain = '{k}'" for k in kain]
+            #     conditions.append(" OR ".join(kain_conditions))
+
+            filter_condition = " AND ".join(conditions) if conditions else ""
         else:
             pass
-      
-        results = index.search(query, {"limit": 20, "filter": filter_condition})
-        
+
+        print("FITER", filter_condition)
+        results = index.search(query, {"limit": 10, "filter": filter_condition})
+
         return results["hits"]
 
     except Exception as e:
