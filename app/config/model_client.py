@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from openai import OpenAI
 from config.settings import GOOGLE_API_KEY, OPENAI_API_KEY
-import time  # Untuk mengukur waktu eksekusi
+import time 
 
 
 class AIModels:
@@ -28,10 +28,10 @@ class AIModels:
                 else None
             )
 
-        except Exception:
+        except Exception as e:
             end_time = time.time()
             time_taken = end_time - start_time
-            print(f"Gemini Error Response Time: {time_taken:.2f} seconds")
+            print(f"Gemini Error Response: {e}")
             return "Mohon maaf kakak, saat ini sedang ada maintenance 🙏. Kami sedang memperbaiki masalah dan akan kembali segera. Terima kasih atas pengertiannya! 😊"
 
     def generate_openai_response(
@@ -73,7 +73,7 @@ class AIModels:
         """Pilih model yang tepat (Gemini atau OpenAI) berdasarkan parameter model."""
         openai_model_list = ["gpt-3.5-turbo", "gpt-4"]
 
-        if model in ["gemini-1.5-flash", "gemini-1.5"]:
+        if model in ["gemini-1.5-flash", "gemini-1.5", "gemini-1.0-pro"]:
             return self.generate_gemini_response(prompt)
 
         elif model in openai_model_list:

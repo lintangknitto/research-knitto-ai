@@ -3,52 +3,18 @@ from config.settings import MEILISEARCH_URL, MEILISEARCH_API_KEY
 import re
 from utils.spellchecker import correct_typo_with_rapidfuzz
 from rapidfuzz import process
+from config.model_client import AIModels
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+
+stopword_factory = StopWordRemoverFactory()
+stopwords_id = stopword_factory.get_stop_words()
+
+stemmer_factory = StemmerFactory()
+stemmer = stemmer_factory.create_stemmer()
 
 client = meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY)
 
-stopwords_id = [
-    "yang",
-    "dan",
-    "di",
-    "ke",
-    "dari",
-    "untuk",
-    "dengan",
-    "pada",
-    "ini",
-    "itu",
-    "ada",
-    "atau",
-    "sebagai",
-    "oleh",
-    "bahwa",
-    "saja",
-    "untuk",
-    "seperti",
-    "lebih",
-    "juga",
-    "kami",
-    "anda",
-    "mereka",
-    "kami",
-    "tersebut",
-    "atas",
-    "adalah",
-    "mengenai",
-    "stok",
-    "kain",
-    "no order",
-    "no",
-    "cariin",
-    "nomernya",
-    "carikan",
-    "resi",
-    "cek",
-    "melakukan",
-    "cabang",
-    "berapa",
-    "harga",
-]
 
 tema_labels = {
     "aksesoris": "Aksesoris",
@@ -119,17 +85,45 @@ def get_cabang(text):
 
 
 def preprocess_question(question: str) -> str:
-    """Mempersiapkan pertanyaan agar lebih mudah dicari di MeiliSearch dalam bahasa Indonesia."""
+    """Preprocessing untuk pertanyaan pengguna menggunakan Sastrawi"""
+    
     question = question.lower()
-    question = re.sub(r"[^a-z0-9\s]", "", question)
-    question = " ".join([word for word in question.split() if word not in stopwords_id])
-    return question
+    words = question.split()
+    
+    words = [word for word in words if word not in stopwords_id]
+    
+    words = [stemmer.stem(word) for word in words]
+    
+    processed_question = " ".join(words)
+    
+    print("PROSES", preprocess_question)
+    
+    ai_model = AIModels()
+    prompt = f"""
+        Pertanyaan pengguna: "{processed_question}"
 
+        Tugas:
+        1. Temukan jenis kain yang relevan seperti 'combed', 'cotton', 'jersey', 'denim', 'spandex', dll. Jenis kain ini tidak perlu disebutkan satu per satu, biarkan model mengenali pola kain berdasarkan konteks.
+        2. Identifikasi warna yang disebutkan dalam pertanyaan seperti 'hitam', 'merah', 'biru', dll.
+        3. Tentukan cabang jika disebutkan (misalnya 'Jakarta', 'Bandung', 'Surabaya').
+        4. Temukan identitas order seperti no order (misalnya 'OH140225003', 'MY140225001', dll).
+        
+        Formatkan jawaban Anda dengan menyoroti no order, jenis kain, warna, dan cabang yang relevan, semuanya dipisahkan dengan spasi.
+        Hilangkan data yang tidak relevan pada tugas.
+        
+        Jika tidak ada informasi relevan yang ditemukan, kembalikan versi pertanyaan yang telah diproses.
 
-from rapidfuzz import process
-
-
-from rapidfuzz import process
+        **Contoh output yang benar:**
+        - Jika ditemukan informasi: "combed 20s merah holis OH140225003"
+        - Jika tidak ditemukan, kembalikan versi pertanyaan yang sudah diproses, misalnya: "stok kain roll"
+        
+        **Catatan**: 
+        - Jika ada informasi yang hilang, tidak perlu mencantumkannya. Jangan menambahkan informasi yang tidak ditemukan.
+    """
+    
+    print('PRMPTTT', prompt)
+    
+    return ai_model.generate_response(model='gemini-1.0-pro', prompt=prompt)
 
 
 def get_kain(question: str):
@@ -150,43 +144,53 @@ def get_kain(question: str):
         return []
 
 
-def get_memory_from_meili(intent: str, question: str, first_intent=""):
+def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent="" ):
     """Mengambil data dari MeiliSearch berdasarkan intent yang diberikan sebagai nama indeks."""
 
+    intent_khusus =  ['status_order', 'stok', 'cek_resi', 'price_list']
     try:
-        index = client.index(intent)
-        query = preprocess_question(question)
+        if intent in intent_khusus:
+            query = preprocess_question(question)
+        else:
+            query = question
         filter_condition = ""
         print(f"Query yang diproses: {query}")
-        print("intent", intent)
-
-        if intent == "a_greetings" or intent == "a_kanita":
+        
+        index_selected = "faq"
+        if intent == "greetings" or intent == "kanita":
             query = ""
-        elif intent == "a_notfound":
+            index_selected = intent
+        elif intent == "notfound":
             no_order = get_no_order(query)
             query = ""
-
-            if first_intent == "a_status_order":
+            index_selected = 'notfound'
+            
+            if first_intent == "status_order":
                 filter_condition = f"fitur = 'status_order'"
             elif first_intent == "a_cek_resi":
                 filter_condition = f"fitur = 'cek_resi'"
             elif first_intent == "a_stok":
                 filter_condition = f"fitur = 'cek_stok'"
-        elif intent == "a_faq":
+        elif intent == "faq":
+            index_selected = 'faq'
             for key, label in tema_labels.items():
                 if key in query:
                     filter_condition = f"tema = '{label}'"
                     break
-        elif intent == "a_status_order" or intent == "a_cek_resi":
+        elif intent == "status_order" or intent == "cek_resi":
             no_order = get_no_order(query)
-            no_hp = get_no_hp(query)
-            filter_condition = f"no_order = '{no_order}' OR no_hp = '{no_hp}'"
+            if no_order:
+                filter_condition = f"no_order = '{no_order}' AND no_hp = '{nohp}'"
+            else:
+                filter_condition = f"no_hp = '{nohp}'"
             query = ""
-        elif intent == "a_stok" or intent == "a_price_list":
+            index_selected = "status_order"
+        elif intent == "stok" or intent == "price_list":
             cabang = get_cabang(question)
             kain = get_kain(question)
             conditions = []
 
+            index_selected = "stok"
             if cabang:
                 conditions.append(f"cabang = '{cabang}'")
 
@@ -197,8 +201,9 @@ def get_memory_from_meili(intent: str, question: str, first_intent=""):
             filter_condition = " AND ".join(conditions) if conditions else ""
         else:
             pass
-
-        print("FITER", filter_condition)
+        
+        print("FILTER: ", index_selected, filter_condition, 'qq', query)
+        index = client.index(index_selected)
         results = index.search(query, {"limit": 10, "filter": filter_condition})
 
         return results["hits"]

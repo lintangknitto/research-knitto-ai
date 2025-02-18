@@ -23,7 +23,7 @@ def detect_intent(question: str):
 
     try:
         ai_models = AIModels()
-        intent = ai_models.generate_gemini_response(prompt=full_prompt)
+        intent = ai_models.generate_response(model='gemini-1.0-pro', prompt=full_prompt)
 
         valid_intents = [
             "greetings",
@@ -36,6 +36,8 @@ def detect_intent(question: str):
             "kanita",
             "unknown",
         ]
+        
+        print("DETEKSI INTENT")
         if intent in valid_intents:
             return intent
         else:

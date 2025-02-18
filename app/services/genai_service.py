@@ -3,6 +3,7 @@ from utils.get_memory import get_memory_from_meili
 from utils.intent_detection import detect_intent
 from utils.prompt_generator import prompt_generator
 from utils.spellchecker import correct_typo_with_rapidfuzz
+from utils.preprocessing import preprocessing_text
 
 
 def summarize_memory(memory_data):
@@ -13,31 +14,45 @@ def summarize_memory(memory_data):
     return summarized_memory[:500]
 
 
-def generate_answer_without_embed(question: str, first: bool):
+def generate_answer_without_embed(
+    question: str, first: bool, nohp: str, nama_customer: str
+):
     """Menghasilkan jawaban berdasarkan memori (KANITA_MEMORY) dan intent pengguna."""
-    print("first", first)
-    question = correct_typo_with_rapidfuzz(question)
-    intent = detect_intent(question)
-    intent = "a_" + intent
-    memory = get_memory_from_meili(intent, question)
-    print("Intent terdeteksi: ", intent)
-    intent_khusus = ["a_status_order", "a_cek_resi", "a_stok"]
-    first_intent = intent
+    if nohp:
+        intent = detect_intent(question)
+        memory = get_memory_from_meili(intent, question, nohp)
+        print("Intent terdeteksi: ", intent)
 
-    if (intent == "a_faq" or intent == "a_unknown") and len(memory) > 10:
-        memory = summarize_memory(memory)
+        text_pre = preprocessing_text(text=question, intent=intent)
 
-    print("memory", memory)
-    prompt = prompt_generator(question, memory, intent, first)
+        print("TEXTPREEE", text_pre)
+        if (intent == "faq" or intent == "unknown") and len(memory) > 10:
+            memory = summarize_memory(memory)
 
-    if not memory or (isinstance(memory, list) and len(memory) == 0):
-        if intent in intent_khusus:
-            print("NOTFOUND")
-            memory = get_memory_from_meili("a_notfound", question, first_intent)
-            prompt = prompt_generator(question, memory, "a_notfound", first)
+        prompt = prompt_generator(
+            question, memory, intent, first, nama_customer=nama_customer
+        )
+
+        intent_khusus = ["a_status_order", "a_cek_resi", "a_stok"]
+        first_intent = intent
+        if not memory or (isinstance(memory, list) and len(memory) == 0):
+            if intent in intent_khusus:
+                memory = get_memory_from_meili(
+                    "notfound", question, first_intent, nohp=nohp
+                )
+                prompt = prompt_generator(
+                    question, memory, "notfound", first, nama_customer=nama_customer
+                )
+    else:
+        prompt = prompt_generator(
+            question,
+            "nomor hp perlu dimasukan, buat lebih interaktif. Tanpa nomer hp tidak bisa memberikan informasi lebih jauh",
+            "unauthorized",
+            first,
+        )
 
     try:
         ai_model = AIModels()
-        return ai_model.generate_response(model="gemini-1.5-flash", prompt=prompt)
+        return ai_model.generate_response(model="gemini-1.0-pro", prompt=prompt)
     except Exception as e:
         return f"Terjadi kesalahan dalam proses jawaban: {e}"
