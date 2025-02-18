@@ -1,83 +1,79 @@
 import google.generativeai as genai
 from openai import OpenAI
+import time
 from config.settings import GOOGLE_API_KEY, OPENAI_API_KEY
-import time 
 
 
-class AIModels:
-    def __init__(self):
-        genai.configure(api_key=GOOGLE_API_KEY)
-        self.model_gemini = genai.GenerativeModel("gemini-1.5-flash")
-        self.model_openai = OpenAI(api_key=OPENAI_API_KEY)
+# Fungsi untuk mengonfigurasi model Gemini
+def configure_gemini_model(
+    model="gemini-1.5-flash", temperature=1, top_p=0.95, top_k=40, max_tokens=8192
+):
+    genai.configure(api_key=GOOGLE_API_KEY)
 
-    def generate_gemini_response(self, prompt: str):
-        """Menghasilkan respons dari Gemini tanpa kontrol temperatur."""
-        start_time = time.time()
-        try:
-            response = self.model_gemini.generate_content([prompt])
-            end_time = time.time()
+    generation_config = {
+        "temperature": temperature,
+        "top_p": top_p,
+        "top_k": top_k,
+        "max_output_tokens": max_tokens,
+        "response_mime_type": "text/plain",
+    }
 
-            time_taken = end_time - start_time
-            tokens_used = len(response.text.split())
-            print(f"Gemini Response Time: {time_taken:.2f} seconds")
-            print(f"Gemini Tokens Used: {tokens_used} tokens")
+    model_gemini = genai.GenerativeModel(
+        model_name=model,
+        generation_config=generation_config,
+    )
+    return model_gemini
 
-            return (
-                response.text.strip()
-                if response and hasattr(response, "text")
-                else None
-            )
 
-        except Exception as e:
-            end_time = time.time()
-            time_taken = end_time - start_time
-            print(f"Gemini Error Response: {e}")
-            return "Mohon maaf kakak, saat ini sedang ada maintenance 🙏. Kami sedang memperbaiki masalah dan akan kembali segera. Terima kasih atas pengertiannya! 😊"
+# Fungsi untuk mengonfigurasi model OpenAI
+def configure_openai_model():
+    model_openai = OpenAI(api_key=OPENAI_API_KEY)
+    return model_openai
 
-    def generate_openai_response(
-        self, prompt: str, model="gpt-4", max_tokens=500, temperature=0.8
-    ):
-        """Menghasilkan respons dari OpenAI (GPT) dengan kontrol temperatur."""
-        start_time = time.time()
-        try:
-            response = self.model_openai.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            end_time = time.time()
 
-            time_taken = end_time - start_time
-            tokens_used = response.usage["total_tokens"]
-            print(f"OpenAI Response Time: {time_taken:.2f} seconds")
-            print(f"OpenAI Tokens Used: {tokens_used} tokens")
+# Fungsi untuk menghasilkan respons dari Gemini
+def generate_gemini_response(model, prompt: str):
+    """Menghasilkan respons dari Gemini tanpa kontrol temperatur."""
 
-            return (
-                response.choices[0].message.content.strip()
-                if response.choices
-                else None
-            )
+    try:
+        response = model.generate_content([prompt])
 
-        except Exception:
-            end_time = time.time()
-            time_taken = end_time - start_time
-            print(f"OpenAI Error Response Time: {time_taken:.2f} seconds")
-            return "Mohon maaf kakak, saat ini sedang ada maintenance 🙏. Kami sedang memperbaiki masalah dan akan kembali segera. Terima kasih atas pengertiannya! 😊"
+        return response.text.strip() if response and hasattr(response, "text") else None
+    except Exception as e:
+        print(f"Gemini Error Response: {e}")
+        return "Mohon maaf kakak, saat ini sedang ada maintenance 🙏. Kami sedang memperbaiki masalah dan akan kembali segera. Terima kasih atas pengertiannya! 😊"
 
-    def get_openai_client(self):
-        """Mengembalikan instance OpenAI Client."""
-        return self.model_openai
 
-    def generate_response(self, model: str, prompt: any):
-        """Pilih model yang tepat (Gemini atau OpenAI) berdasarkan parameter model."""
-        openai_model_list = ["gpt-3.5-turbo", "gpt-4"]
+def generate_openai_response(
+    model, prompt: str, model_name="gpt-4", max_tokens=500, temperature=0.8
+):
+    """Menghasilkan respons dari OpenAI (GPT) dengan kontrol temperatur."""
 
-        if model in ["gemini-1.5-flash", "gemini-1.5", "gemini-1.0-pro"]:
-            return self.generate_gemini_response(prompt)
+    try:
+        response = model.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        end_time = time.time()
 
-        elif model in openai_model_list:
-            return self.generate_openai_response(model=model, prompt=prompt)
+        return response.choices[0].message.content.strip() if response.choices else None
+    except Exception as e:
+        print(f"OpenAI Error: {e}")
+        return "Mohon maaf kakak, saat ini sedang ada maintenance 🙏. Kami sedang memperbaiki masalah dan akan kembali segera. Terima kasih atas pengertiannya! 😊"
 
-        else:
-            return "Mohon maaf kakak, model yang diminta tidak tersedia saat ini 🙏. Silakan coba model lain."
+
+def generate_response(model: str, prompt: any):
+    """Pilih model yang tepat (Gemini atau OpenAI) berdasarkan parameter model."""
+
+    openai_model_list = ["gpt-3.5-turbo", "gpt-4"]
+
+    if model in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.0-pro"]:
+        model_gemini = configure_gemini_model(model=model)
+        return generate_gemini_response(model=model_gemini, prompt=prompt)
+    elif model in openai_model_list:
+        model_openai = configure_openai_model()
+        return generate_openai_response(model=model_openai, prompt=prompt)
+    else:
+        return "Mohon maaf kakak, model yang diminta tidak tersedia saat ini 🙏. Silakan coba model lain."

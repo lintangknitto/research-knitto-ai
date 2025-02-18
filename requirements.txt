@@ -4,9 +4,7 @@ google-generativeai
 python-dotenv
 pytz
 sentence_transformers
-faiss-cpu
 meilisearch
-fastapi
 uvicorn
 python-dotenv
 openai

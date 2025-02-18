@@ -6,7 +6,7 @@ def get_data_meili(type: str):
     filter_cond = f"""type = '{type}'"""
     search_results = index.search("", {"filter": filter_cond, "limit": 1000})
 
-    return set(result["name"].lower() for result in search_results["hits"])
+    return set(result["word"].lower() for result in search_results["hits"])
 
 
 def preprocessing_text(text: str, intent: str) -> str:
@@ -17,12 +17,20 @@ def preprocessing_text(text: str, intent: str) -> str:
 
     relevant_words = []
     data_lexicon = []
-    if intent in fabric_related_intent:
-        data_lexicon = get_data_meili("kain")
 
-    for word in words:
-        if word in data_lexicon:
-            relevant_words.append(word)
+    if intent in fabric_related_intent:
+        data_lexicon.extend(get_data_meili("kain"))
+        data_lexicon.extend(get_data_meili("warna"))
+
+    sorted_lexicon = sorted(data_lexicon, key=lambda x: len(x.split()), reverse=True)
+
+    used_words = set()
+
+    for phrase in sorted_lexicon:
+        phrase_words = phrase.split()
+        if all(word in words and word not in used_words for word in phrase_words):
+            relevant_words.append(phrase)
+            used_words.update(phrase_words)
 
     processed_text = " ".join(relevant_words)
 

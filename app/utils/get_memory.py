@@ -3,9 +3,9 @@ from config.settings import MEILISEARCH_URL, MEILISEARCH_API_KEY
 import re
 from utils.spellchecker import correct_typo_with_rapidfuzz
 from rapidfuzz import process
-from config.model_client import AIModels
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+from utils.preprocessing import preprocessing_text
 
 stopword_factory = StopWordRemoverFactory()
 stopwords_id = stopword_factory.get_stop_words()
@@ -84,48 +84,6 @@ def get_cabang(text):
     return ""
 
 
-def preprocess_question(question: str) -> str:
-    """Preprocessing untuk pertanyaan pengguna menggunakan Sastrawi"""
-    
-    question = question.lower()
-    words = question.split()
-    
-    words = [word for word in words if word not in stopwords_id]
-    
-    words = [stemmer.stem(word) for word in words]
-    
-    processed_question = " ".join(words)
-    
-    print("PROSES", preprocess_question)
-    
-    ai_model = AIModels()
-    prompt = f"""
-        Pertanyaan pengguna: "{processed_question}"
-
-        Tugas:
-        1. Temukan jenis kain yang relevan seperti 'combed', 'cotton', 'jersey', 'denim', 'spandex', dll. Jenis kain ini tidak perlu disebutkan satu per satu, biarkan model mengenali pola kain berdasarkan konteks.
-        2. Identifikasi warna yang disebutkan dalam pertanyaan seperti 'hitam', 'merah', 'biru', dll.
-        3. Tentukan cabang jika disebutkan (misalnya 'Jakarta', 'Bandung', 'Surabaya').
-        4. Temukan identitas order seperti no order (misalnya 'OH140225003', 'MY140225001', dll).
-        
-        Formatkan jawaban Anda dengan menyoroti no order, jenis kain, warna, dan cabang yang relevan, semuanya dipisahkan dengan spasi.
-        Hilangkan data yang tidak relevan pada tugas.
-        
-        Jika tidak ada informasi relevan yang ditemukan, kembalikan versi pertanyaan yang telah diproses.
-
-        **Contoh output yang benar:**
-        - Jika ditemukan informasi: "combed 20s merah holis OH140225003"
-        - Jika tidak ditemukan, kembalikan versi pertanyaan yang sudah diproses, misalnya: "stok kain roll"
-        
-        **Catatan**: 
-        - Jika ada informasi yang hilang, tidak perlu mencantumkannya. Jangan menambahkan informasi yang tidak ditemukan.
-    """
-    
-    print('PRMPTTT', prompt)
-    
-    return ai_model.generate_response(model='gemini-1.0-pro', prompt=prompt)
-
-
 def get_kain(question: str):
     try:
         question = correct_typo_with_rapidfuzz(question)
@@ -144,18 +102,18 @@ def get_kain(question: str):
         return []
 
 
-def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent="" ):
+def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""):
     """Mengambil data dari MeiliSearch berdasarkan intent yang diberikan sebagai nama indeks."""
 
-    intent_khusus =  ['status_order', 'stok', 'cek_resi', 'price_list']
+    intent_khusus = ["status_order", "stok", "cek_resi", "price_list"]
     try:
         if intent in intent_khusus:
-            query = preprocess_question(question)
+            query = preprocessing_text(text=question, intent=intent)
         else:
             query = question
         filter_condition = ""
         print(f"Query yang diproses: {query}")
-        
+
         index_selected = "faq"
         if intent == "greetings" or intent == "kanita":
             query = ""
@@ -163,8 +121,8 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         elif intent == "notfound":
             no_order = get_no_order(query)
             query = ""
-            index_selected = 'notfound'
-            
+            index_selected = "notfound"
+
             if first_intent == "status_order":
                 filter_condition = f"fitur = 'status_order'"
             elif first_intent == "a_cek_resi":
@@ -172,7 +130,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
             elif first_intent == "a_stok":
                 filter_condition = f"fitur = 'cek_stok'"
         elif intent == "faq":
-            index_selected = 'faq'
+            index_selected = "faq"
             for key, label in tema_labels.items():
                 if key in query:
                     filter_condition = f"tema = '{label}'"
@@ -187,22 +145,17 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
             index_selected = "status_order"
         elif intent == "stok" or intent == "price_list":
             cabang = get_cabang(question)
-            kain = get_kain(question)
             conditions = []
 
             index_selected = "stok"
             if cabang:
                 conditions.append(f"cabang = '{cabang}'")
 
-            # if kain:
-            #     kain_conditions = [f"kain = '{k}'" for k in kain]
-            #     conditions.append(" OR ".join(kain_conditions))
-
             filter_condition = " AND ".join(conditions) if conditions else ""
         else:
             pass
-        
-        print("FILTER: ", index_selected, filter_condition, 'qq', query)
+
+        print("FILTER: ", filter_condition)
         index = client.index(index_selected)
         results = index.search(query, {"limit": 10, "filter": filter_condition})
 
