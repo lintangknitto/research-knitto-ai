@@ -3,9 +3,9 @@ import csv
 
 
 def mapping_data_stok(data_stok):
-    ringkasan = []
+    result = []
     for item in data_stok:
-        ringkasan.append(
+        result.append(
             {
                 "nama_kain": item["nama_kain"],
                 "warna_kain": item["warna_kain"],
@@ -15,53 +15,119 @@ def mapping_data_stok(data_stok):
             }
         )
 
-    # try:
-    #     with io.StringIO() as output:
-    #         fieldnames = ["nama_kain", "warna_kain", "stok", "satuan", "cabang"]
-    #         writer = csv.DictWriter(output, fieldnames=fieldnames)
+    try:
+        with io.StringIO() as output:
+            fieldnames = ["nama_kain", "warna_kain", "stok", "satuan", "cabang"]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
 
-    #         writer.writeheader()
-    #         for item in ringkasan:
-    #             writer.writerow(item)
+            writer.writeheader()
+            for item in result:
+                writer.writerow(item)
 
-    #         csv_string = output.getvalue()
-    #         return csv_string
+            csv_string = output.getvalue()
+            return csv_string
 
-    # except Exception as e:
-    #     print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
-    #     return None
-
-    return ringkasan
+    except Exception as e:
+        print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
+        return result
 
 
 def mapping_data_status_order(data):
-    ringkasan = []
+    result = []
     for item in data:
-        ringkasan.append(
-            {"no_order": item["no_order"], "status_order": item["status_order"]}
+        result.append(
+            {"no_order": item["no_order"], "status_order": item["status_order"], "tagihan": item["tagihan"],"ongkir": item["ongkir"]}
         )
 
-    # try:
-    #     with io.StringIO() as output:
-    #         fieldnames = ["nama_kain", "warna_kain", "stok", "satuan", "cabang"]
-    #         writer = csv.DictWriter(output, fieldnames=fieldnames)
+    try:
+        with io.StringIO() as output:
+            fieldnames = ["no_order", "status_order", "tagihan", "ongkir"]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
 
-    #         writer.writeheader()
-    #         for item in ringkasan:
-    #             writer.writerow(item)
+            writer.writeheader()
+            for item in result:
+                writer.writerow(item)
 
-    #         csv_string = output.getvalue()
-    #         return csv_string
+            csv_string = output.getvalue()
+            return csv_string
 
-    # except Exception as e:
-    #     print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
-    #     return None
+    except Exception as e:
+        print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
+        return result
 
-    return ringkasan
+
+def mapping_data_price(data):
+    result = []
+    for item in data:
+        result.append(
+            {
+                "nama_kain": item["nama_kain"],
+                "warna_kain": item["warna_kain"],
+                "harga_rollan": item["harga_rollan"],
+                "harga_diatas": item["harga_diatas"],
+                "harga_dibawah": item["harga_dibawah"],
+                "cabang": item["cabang"],
+            }
+        )
+
+    try:
+        with io.StringIO() as output:
+            fieldnames = [
+                "nama_kain",
+                "warna_kain",
+                "harga_rollan",
+                "harga_diatas",
+                "harga_dibawah",
+                "cabang",
+            ]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for item in result:
+                writer.writerow(item)
+
+            csv_string = output.getvalue()
+            return csv_string
+
+    except Exception as e:
+        print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
+        return result
+
+def mapping_data_resi(data):
+    result = []
+    for item in data:
+        if item.get("no_resi"):
+            result.append(
+                {"no_order": item["no_order"], "no_resi": item["no_resi"]}
+            )
+
+    try:
+        with io.StringIO() as output:
+            fieldnames = ["no_order", "no_resi"]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for item in result:
+                writer.writerow(item)
+
+            csv_string = output.getvalue()
+            return csv_string
+
+    except Exception as e:
+        print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
+        return result
 
 
 def mapping_memory(intent: str, data):
-    if intent == "stok":
-        return mapping_data_stok(data)
-    elif intent == "status_order":
-        return mapping_data_status_order(data)
+    # if intent == "stok":
+    #     return mapping_data_stok(data)
+    # elif intent == "status_order":
+    #     return mapping_data_status_order(data)
+    # elif intent == "price_list":
+    #     return mapping_data_price(data)
+    # elif intent == 'cek_resi':
+    #     return mapping_data_resi(data)
+    # else:
+    #     return data
+    
+    return data

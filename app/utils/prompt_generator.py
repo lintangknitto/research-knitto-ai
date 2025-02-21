@@ -3,11 +3,11 @@ from utils.get_memory import get_no_order
 import tiktoken
 
 INTENT_PROMPTS = {
-    "notfound": r"""Catatan: fitur cek resi itu adalah untuk mendapatkan nomor resi bukan untuk melacak. no order : {no_order}""",
-    "status_order": r"""FORMAT: - Status Order "no_order" : **status_order** , tidak perlu memasukan tagihan atau lainya. Apabila pada pertanyaan ada spesifik no order maka pastikan yang ditampilkan sesuai no order yang diinginkan. Contoh MY140225001 dan OH140225001 itu berbeda.""",
-    "cek_resi": r"""FORMAT: - Nomor Resi untuk "no_order" : no_resi , buat lebih interaktif.""",
-    "stok": r"""FORMAT: Lakukan grouping berdasarkan cabang dan nama kain. Penulisan stok untuk KG tulis menggunakan aslinya, untuk ROLL ditulis bulat misal 10 ROLL. Untuk mendapatkan informasi lebih lengkap mengenai stok dapat dilihat melalui link berikut: https://stock.knitto.co.id""",
-    "price_list": r"""FORMAT: Pricelist cabang : 'cabang'. 1. **nama_kain - jenis_warna** - Harga Rollan :  'harga_rollan' - Harga >= 5 Kg : 'harga_diatas' - Harga < 5 Kg : 'harga_dibawah' Apabila lebih dari 1 nama kain maka kelompokan dengan nama kain dan apabila terdapat warna yang harganya sama pada suatu nama kain maka gabungkan saja dalam list. Buat lebih interaktif, tapi tidak usah terlalu banyak emoji.""",
+    "notfound": r"""Buat penyampaian tentang tidak ditemukan dengan ramah.""",
+    "status_order": r"""FORMAT: - Status Order "no_order" : **status_order** , tidak perlu memasukan tagihan atau lainya. Apabila pada pertanyaan ada spesifik no order maka pastikan yang ditampilkan sesuai no order yang diinginkan. Contoh MY140225001 dan OH140225001 itu berbeda. Tambahkan tagihan jika perlu dan ditanyakan. Ongkir jika perlu""",
+    "cek_resi": r"""FORMAT: - Nomor Resi untuk "no_order" : **no_resi** , buat lebih interaktif.""",
+    "stok": r"""FORMAT: Lakukan grouping berdasarkan cabang dan nama kain. Untuk pertanyaan yang cukup general atau tidak spesifik sampaikan untuk detailnya ada di link, dan sampaikan beberapa stok contoh sesuai yang ada di konteks. Penulisan stok untuk KG tulis menggunakan aslinya, untuk ROLL ditulis bulat misal 10 ROLL. Tidak usah tampilkan stok yang tidak sesuai pertanyaan. Untuk mendapatkan informasi lebih lengkap mengenai stok dapat dilihat melalui link berikut: https://stock.knitto.co.id""",
+    "price_list": r"""FORMAT: Pricelist cabang : 'cabang'. 1. **nama_kain - jenis_warna** \n- Harga Rollan :  'harga_rollan' \n- Harga >= 5 Kg : 'harga_diatas' \n- Harga < 5 Kg : 'harga_dibawah' Apabila lebih dari 1 nama kain maka kelompokan dengan nama kain dan apabila terdapat warna yang harganya sama pada suatu nama kain maka gabungkan saja dalam list. Buat lebih interaktif, tapi tidak usah terlalu banyak emoji.""",
 }
 
 MAIN_PROMPT_TEMPLATE = r"""Jawablah pertanyaan berikut dengan konteks yang sudah diberikan, dan buat jawaban yang interaktif dengan mengembangkan konteks:
@@ -26,6 +26,7 @@ Saring data sesuai pertanyaan. Jika tidak ada data yang cocok, beri tahu tanpa m
 - Tambahkan emoji untuk interaksi.
 - Selalu sebut customer sebagai "Kak" atau "Kakak".
 - Buat agar customer tidak merasa kaku.
+- "Berdasarkan informasi yang ada" atau yang serupa, ganti yang merujuk dengan saya siap menjawab apapun.
 ### Lingkup:
 Kamu adalah kanita.
 Jawaban hanya terkait dengan Knitto Textile Indonesia.
@@ -66,13 +67,8 @@ def prompt_generator(
             intent_prompt=intent_prompt,
             greeting=greeting,
         )
-
-        token_count = count_tokens(prompt)
-        if token_count != -1:
-            print(f"Jumlah token dalam prompt ini: {token_count}")
-        else:
-            print("Gagal menghitung token.")
-
+        
+        print(prompt)
         return prompt.strip()
 
     except Exception as e:

@@ -66,8 +66,12 @@ def main():
         index = meiliClient.index("customer")
         filter_cond = f"""no_hp = '{registered_no_hp}'"""
         results = index.search("", {"limit": 1, "filter": filter_cond})
-        nama_customer = results['hits'][0]['nama_customer']
+        try:
+            nama_customer = results['hits'][0]['nama_customer']
+        except (KeyError, IndexError):
+            nama_customer = ""
         st.session_state.nama = nama_customer
+
         
         if nama_customer:
             st.success(f"Selamat datang, Kak {nama_customer} 😊")
@@ -82,7 +86,10 @@ def main():
             question, st.session_state.first_question, nohp=registered_no_hp,
             nama_customer=st.session_state.nama
         )
-    
+        else:
+            answer = generate_answer_without_embed(
+            question, st.session_state.first_question, nohp=registered_no_hp,
+            nama_customer=st.session_state.nama)
         conversation_history.append({"user": question, "kanita": answer})
 
         st.session_state.first_question = False
@@ -98,7 +105,6 @@ def main():
     if st.button("Mulai Percakapan Baru"):
         reset_conversation()
         st.success("Percakapan baru telah dimulai!")
-
 
 if __name__ == "__main__":
     main()

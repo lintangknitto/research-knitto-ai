@@ -1,4 +1,4 @@
-from config.model_client import generate_response
+from utils.augmented import generate_response
 import streamlit as st
 
 
@@ -9,12 +9,11 @@ def detect_intent(question: str):
         - greetings: jika pengguna memberikan sapaan seperti "halo", "hi", "selamat pagi", atau mengenalkan dirinya.
         - thanks: jika pengguna mengucapkan terima kasih seperti "terima kasih", "makasih", atau sejenisnya.
         - stok: jika pengguna bertanya tentang stok kain.
-        - faq: jika pengguna bertanya tentang layanan, bantuan, cabang, cara order, atau informasi umum seputar Knitto Textile.
         - cek_resi: jika pengguna bertanya yang berkaitan dengan resi.
-        - status_order: jika pengguna bertanya yang berkaitan dengan status order.
+        - status_order: jika pengguna bertanya yang berkaitan dengan status order, tagihan.
         - price_list: jika pengguna bertanya tentang semua yang berkaitan dengan price list, harga atau yang serupa.
         - kanita: jika pengguna bertanya tentang diri kamu, identitas kamu, pencipta kamu, sumber data kamu.
-        - unknown: jika pertanyaan tidak cocok dengan intent di atas.
+        - faq: jika pertanyaan tidak cocok dengan intent di atas.
 
         Balas hanya dengan satu kata intent dari daftar di atas, tanpa tambahan kata atau penjelasan. Jangan pernah membuat intent selain diatas.
     """
@@ -22,7 +21,7 @@ def detect_intent(question: str):
     full_prompt = prompt + "\nPertanyaan: " + question + "\nIntent:"
 
     try:
-        intent = generate_response(model="gemini-1.0-pro", prompt=full_prompt)
+        intent = generate_response(model="gemini-2.0-flash", prompt=full_prompt, id='INTENT DETECTION')
 
         valid_intents = [
             "greetings",
@@ -36,7 +35,6 @@ def detect_intent(question: str):
             "unknown",
         ]
 
-        print("DETEKSI INTENT")
         if intent in valid_intents:
             return intent
         else:

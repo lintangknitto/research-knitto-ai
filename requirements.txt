@@ -3,9 +3,6 @@ requests
 google-generativeai
 python-dotenv
 pytz
-sentence_transformers
 meilisearch
-uvicorn
 python-dotenv
 openai
-rapidfuzz

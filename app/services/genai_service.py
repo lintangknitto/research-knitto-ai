@@ -1,8 +1,8 @@
-from config.model_client import generate_response
 from utils.get_memory import get_memory_from_meili
 from utils.intent_detection import detect_intent
 from utils.prompt_generator import prompt_generator
 from utils.mapping_memory import mapping_memory
+from utils.augmented import generate_response
 
 
 def summarize_memory(memory_data):
@@ -23,9 +23,9 @@ def generate_answer_without_embed(
             first,
         )
         try:
-            return generate_response(model="gemini-2.0-flash", prompt=prompt)
+            return generate_response(model="gemini-2.0-flash", prompt=prompt, id='UNAUTHORIZED')
         except Exception as e:
-            return f"Terjadi kesalahan dalam proses jawaban: {e}"
+            return f"Error 1: {e}"
 
     intent = detect_intent(question)
     print("Intent terdeteksi: ", intent)
@@ -35,12 +35,10 @@ def generate_answer_without_embed(
     if (intent == "faq" or intent == "unknown") and len(memory) > 10:
         memory = summarize_memory(memory)
 
-    intent_khusus = ["status_order", "cek_resi", "stok"]
-
+    intent_khusus = ["status_order", "stok", "cek_resi"]
     if not memory or (isinstance(memory, list) and len(memory) == 0):
         if intent in intent_khusus:
-            memory = get_memory_from_meili("notfound", question, intent, nohp=nohp)
-
+            memory = get_memory_from_meili("notfound", question, nohp=nohp, first_intent=intent)
         prompt = prompt_generator(
             question,
             memory,
@@ -54,10 +52,10 @@ def generate_answer_without_embed(
             question, memory, intent, first, nama_customer=nama_customer
         )
 
-    print(f"Memori: {memory}")
-    print(f"Prompt yang dihasilkan: {prompt}")
-
+    
     try:
-        return generate_response(model="gemini-2.0-flash", prompt=prompt)
+        response = generate_response(model="gemini-1.5-flash", prompt=prompt, id='GENERATE CHAT')
+        print('CHAT', response)
+        return response
     except Exception as e:
-        return f"Terjadi kesalahan dalam proses jawaban: {e}"
+        return f"Error 2: {e}"

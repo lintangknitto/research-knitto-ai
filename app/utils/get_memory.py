@@ -1,17 +1,8 @@
 import meilisearch
 from config.settings import MEILISEARCH_URL, MEILISEARCH_API_KEY
 import re
-from utils.spellchecker import correct_typo_with_rapidfuzz
-from rapidfuzz import process
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 from utils.preprocessing import preprocessing_text
-
-stopword_factory = StopWordRemoverFactory()
-stopwords_id = stopword_factory.get_stop_words()
-
-stemmer_factory = StemmerFactory()
-stemmer = stemmer_factory.create_stemmer()
+import time
 
 client = meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY)
 
@@ -84,24 +75,6 @@ def get_cabang(text):
     return ""
 
 
-def get_kain(question: str):
-    try:
-        question = correct_typo_with_rapidfuzz(question)
-        list_jenis_kain = ["combed 30s", "combed 20s", "combed 40s"]
-
-        matches = process.extract(
-            query=question, choices=list_jenis_kain, limit=5, score_cutoff=80
-        )
-
-        best_matches = [match[0] for match in matches]
-
-        return best_matches if best_matches else []
-
-    except Exception as e:
-        print(f"Terjadi kesalahan: {e}")
-        return []
-
-
 def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""):
     """Mengambil data dari MeiliSearch berdasarkan intent yang diberikan sebagai nama indeks."""
 
@@ -114,7 +87,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         filter_condition = ""
         print(f"Query yang diproses: {query}")
 
-        index_selected = "faq"
+        index_selected = "unknown"
         if intent == "greetings" or intent == "kanita":
             query = ""
             index_selected = intent
@@ -125,9 +98,9 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
 
             if first_intent == "status_order":
                 filter_condition = f"fitur = 'status_order'"
-            elif first_intent == "a_cek_resi":
+            elif first_intent == "cek_resi":
                 filter_condition = f"fitur = 'cek_resi'"
-            elif first_intent == "a_stok":
+            elif first_intent == "stok":
                 filter_condition = f"fitur = 'cek_stok'"
         elif intent == "faq":
             index_selected = "faq"
@@ -155,9 +128,14 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         else:
             pass
 
-        print("FILTER: ", filter_condition)
         index = client.index(index_selected)
-        results = index.search(query, {"limit": 10, "filter": filter_condition})
+
+        start_time = time.time()
+        results = index.search(query, {"limit": 5, "filter": filter_condition})
+        end_time = time.time()
+
+        response_time = (end_time - start_time) * 1000
+        print("response time meilisearch: ", response_time, ' ms')
 
         return results["hits"]
 

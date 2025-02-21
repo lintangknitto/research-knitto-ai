@@ -4,9 +4,9 @@ import tiktoken
 
 INTENT_PROMPTS = {
     "notfound": r"""Fitur cek resi untuk nomor resi, bukan melacak. No order: {no_order}""",
-    "status_order": r"""Format: Status Order "no_order": **status_order**.""",
+    "status_order": r"""Format: Status Order "no_order": **status_order**. Jika tidak ada sampaikan kalo belum ada order. Selalu sebut order bukan pesanan""",
     "cek_resi": r"""Format: Nomor Resi untuk "no_order": no_resi.""",
-    "stok": r"""Format: Grup berdasarkan cabang & nama kain. Stok KG: asli, ROLL: bulat (contoh: 10 ROLL). Stok kosong? Tanyakan kain lain. Info lengkap: https://stock.knitto.co.id""",
+    "stok": r"""Format: Grup berdasarkan cabang & nama kain. Stok KG: asli, ROLL: bulat (contoh: 10 ROLL). Stok kosong? Tanyakan kain lain. Info lengkap: https://stock.knitto.co.id. Untuk warna itu strict, jangan pernah menyamakan warna dari pertanyaan dengan warna dari konteks kecuali benar benar sama, jadi konteks tidak selalu sesuai maka harus pastikan lagi dan jika tidak ada yang sama sampaikan kalo tidak ada.""",
     "price_list": r"""Format: Pricelist cabang: 'cabang'. Nama kain - jenis warna: Harga Rollan, Harga >= 5 Kg, Harga < 5 Kg. Kelompokkan nama kain, gabungkan warna dengan harga sama. Buat interaktif.""",
 }
 
@@ -67,11 +67,5 @@ def prompt_generator(
         intent_prompt=intent_prompt,
         greeting=greeting,
     )
-
-    token_count = count_tokens(prompt)
-    if token_count != -1:
-        print(f"Jumlah token dalam prompt ini: {token_count}")
-    else:
-        print("Gagal menghitung token.")
 
     return prompt.strip()
