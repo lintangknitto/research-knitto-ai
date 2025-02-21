@@ -3,25 +3,11 @@ import streamlit as st
 
 
 def detect_intent(question: str):
-    prompt = """
-        Kamu adalah asisten virtual yang bertugas mendeteksi intent dari pertanyaan pengguna dalam bahasa Indonesia.
-        Berikut adalah daftar intent yang tersedia:
-        - greetings: jika pengguna memberikan sapaan seperti "halo", "hi", "selamat pagi", atau mengenalkan dirinya.
-        - thanks: jika pengguna mengucapkan terima kasih seperti "terima kasih", "makasih", atau sejenisnya.
-        - stok: jika pengguna bertanya tentang stok kain.
-        - cek_resi: jika pengguna bertanya yang berkaitan dengan resi.
-        - status_order: jika pengguna bertanya yang berkaitan dengan status order, tagihan.
-        - price_list: jika pengguna bertanya tentang semua yang berkaitan dengan price list, harga atau yang serupa.
-        - kanita: jika pengguna bertanya tentang diri kamu, identitas kamu, pencipta kamu, sumber data kamu.
-        - faq: jika pertanyaan tidak cocok dengan intent di atas.
-
-        Balas hanya dengan satu kata intent dari daftar di atas, tanpa tambahan kata atau penjelasan. Jangan pernah membuat intent selain diatas.
+    prompt = f"""Kamu adalah Intent Detection Expert. Tugas kamu adalah mendeteksi intent dari setiap pertanyaan atau kalimat yang dimasukan oleh user. Dalam mendeteksi intent, scope yang kamu miliki adalah sebagai berikut: greetings, thanks, stok, faq, cek_resi, status_order, price_list, kanita, faq. Jika menurut kamu kalimat yang diberikan tidak masuk kedalam scope diatas, maka bisa dimasukan saja sebagai faq. Berikut kalimat yang harus dideteksi : {question}. Jawab hanya intentnya saja, misalnya "stok". Dan jangan dijawab selain scope yang sudah disebutkan.
     """
-
-    full_prompt = prompt + "\nPertanyaan: " + question + "\nIntent:"
-
+    
     try:
-        intent = generate_response(model="gemini-2.0-flash", prompt=full_prompt, id='INTENT DETECTION')
+        intent = generate_response(model="gemini-2.0-flash", prompt=prompt, id='INTENT DETECTION')
 
         valid_intents = [
             "greetings",

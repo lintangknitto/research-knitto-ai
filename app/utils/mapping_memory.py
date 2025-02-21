@@ -36,12 +36,12 @@ def mapping_data_status_order(data):
     result = []
     for item in data:
         result.append(
-            {"no_order": item["no_order"], "status_order": item["status_order"], "tagihan": item["tagihan"],"ongkir": item["ongkir"]}
+            {"no_order": item["no_order"], "status_order": item["status_order"], "tagihan": item["tagihan"],"ongkir": item["ongkir"], "total_bayar": item['total_bayar']}
         )
 
     try:
         with io.StringIO() as output:
-            fieldnames = ["no_order", "status_order", "tagihan", "ongkir"]
+            fieldnames = ["no_order", "status_order", "tagihan", "ongkir", "total_bayar"]
             writer = csv.DictWriter(output, fieldnames=fieldnames)
 
             writer.writeheader()
@@ -98,12 +98,45 @@ def mapping_data_resi(data):
     for item in data:
         if item.get("no_resi"):
             result.append(
-                {"no_order": item["no_order"], "no_resi": item["no_resi"]}
+                {"no_order": item["no_order"], "no_resi": item["no_resi"], "ongkir": item['ongkir'], "ekspedisi": item['ekspedisi']}
             )
+        else:
+            return 'Tidak ada order yang sudah memiliki res'
 
     try:
         with io.StringIO() as output:
-            fieldnames = ["no_order", "no_resi"]
+            fieldnames = ["no_order", "no_resi", 'ongkir', 'ekspedisi']
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for item in result:
+                writer.writerow(item)
+
+            csv_string = output.getvalue()
+            return csv_string
+
+    except Exception as e:
+        print(f"Terjadi kesalahan saat memformat ke CSV: {e}")
+        return result
+    
+def mapping_data_cabang(data):
+    result = []
+    for item in data:
+        result.append(
+            {
+                "nama_cabang": item["nama_cabang"],
+                "kota": item["kota"],
+                "alamat": item["alamat"]
+            }
+        )
+
+    try:
+        with io.StringIO() as output:
+            fieldnames = [
+                "nama_cabang",
+                "kota",
+                "alamat"
+            ]
             writer = csv.DictWriter(output, fieldnames=fieldnames)
 
             writer.writeheader()
@@ -119,15 +152,16 @@ def mapping_data_resi(data):
 
 
 def mapping_memory(intent: str, data):
-    # if intent == "stok":
-    #     return mapping_data_stok(data)
-    # elif intent == "status_order":
-    #     return mapping_data_status_order(data)
-    # elif intent == "price_list":
-    #     return mapping_data_price(data)
-    # elif intent == 'cek_resi':
-    #     return mapping_data_resi(data)
-    # else:
-    #     return data
+    if intent == "stok":
+        return mapping_data_stok(data)
+    elif intent == "status_order":
+        return mapping_data_status_order(data)
+    elif intent == "price_list":
+        return mapping_data_price(data)
+    elif intent == 'cek_resi':
+        return mapping_data_resi(data)
+    elif intent == 'cabang':
+        return mapping_data_cabang(data)
+    else:
+        return data
     
-    return data

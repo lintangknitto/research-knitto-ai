@@ -1,11 +1,7 @@
-import meilisearch
-from config.settings import MEILISEARCH_URL, MEILISEARCH_API_KEY
 import re
-from utils.preprocessing import preprocessing_text
 import time
-
-client = meilisearch.Client(MEILISEARCH_URL, MEILISEARCH_API_KEY)
-
+from utils.preprocessing import preprocessing_text
+from config.meilisearch_client import meiliClient
 
 tema_labels = {
     "aksesoris": "Aksesoris",
@@ -78,6 +74,7 @@ def get_cabang(text):
 def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""):
     """Mengambil data dari MeiliSearch berdasarkan intent yang diberikan sebagai nama indeks."""
 
+    limit = 5
     intent_khusus = ["status_order", "stok", "cek_resi", "price_list"]
     try:
         if intent in intent_khusus:
@@ -104,6 +101,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
                 filter_condition = f"fitur = 'cek_stok'"
         elif intent == "faq":
             index_selected = "faq"
+            limit = 2
             for key, label in tema_labels.items():
                 if key in query:
                     filter_condition = f"tema = '{label}'"
@@ -125,13 +123,16 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
                 conditions.append(f"cabang = '{cabang}'")
 
             filter_condition = " AND ".join(conditions) if conditions else ""
+        elif intent == 'cabang':
+            index_selected = 'cabang'
+            limit = 10
         else:
             pass
 
-        index = client.index(index_selected)
+        index = meiliClient.index(index_selected)
 
         start_time = time.time()
-        results = index.search(query, {"limit": 5, "filter": filter_condition})
+        results = index.search(query, {"limit": limit, "filter": filter_condition})
         end_time = time.time()
 
         response_time = (end_time - start_time) * 1000
