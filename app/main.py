@@ -72,7 +72,15 @@ def main():
     chat_container = st.container()
     with chat_container:
         st.title("Kanita Chatbot - PT. Knitto Textile Indonesia")
-        st.subheader("Virtual Assistant")
+        st.caption("Selamat datang di Virtual Assistant Kanita chatbot, anda bisa bertanya mengenai hal : ")
+        st.caption('''
+        <ul>
+            <li>Status order</li>
+            <li>No resi</li>
+            <li>Price list</li>
+            <li>Stok </li>
+            <li>Faq</li>
+        </ul>''',unsafe_allow_html =True)
         for chat in conversation_history:
             with st.chat_message("user"):
                 st.write(chat['user'])
