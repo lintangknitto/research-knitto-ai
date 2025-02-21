@@ -7,104 +7,96 @@ from config.meilisearch_client import meiliClient
 
 def initialize_session():
     """Inisialisasi histori percakapan di session state."""
-    if "conversations" not in st.session_state:
+    if 'conversations' not in st.session_state:
         st.session_state.conversations = {}
         st.session_state.selected_conversation = None
+        st.session_state.first_question = True
+        st.session_state.registered_no_hp = ''
+        st.session_state.nama = ''
+        st.session_state.hp_history = []
 
 
-def type_effect(text, speed=0.1):
+def type_effect(text, speed=0.01):
     """Efek mengetik teks secara perlahan di Streamlit."""
     text_placeholder = st.empty()
-    displayed_text = ""
+    displayed_text = ''
 
     for char in text:
         displayed_text += char
-        text_placeholder.write(displayed_text)
+        text_placeholder.markdown(displayed_text)
         time.sleep(speed)
 
 
-def save_conversation(conversation_id, conversation_history):
-    """Simpan percakapan di session state."""
-    st.session_state.conversations[conversation_id] = conversation_history
-
-
 def reset_conversation():
-    """Reset percakapan baru di session state."""
-    st.session_state.selected_conversation = None
+    """Inisialisasi percakapan baru di session state."""
+    st.session_state.selected_conversation = str(datetime.now())
+    st.session_state.conversations[st.session_state.selected_conversation] = []
+    st.session_state.first_question = True
 
 
 def main():
     """Fungsi utama untuk menjalankan chatbot Kanita di Streamlit."""
-    st.title("Kanita Chatbot - PT. Knitto Textile Indonesia")
-    st.subheader("Virtual Assistant")
+    st.set_page_config(page_title="Kanita Chatbot", page_icon="🤖", layout="wide")
 
     initialize_session()
 
-    conversation_options = list(st.session_state.conversations.keys())
-    conversation_options.append("Percakapan Baru")
+    with st.sidebar:
+        st.logo(image="https://knitto.co.id/assets/svg/logoKnittoCircle.svg", size="small")
 
-    selected_conversation = st.selectbox("Pilih percakapan", conversation_options)
 
-    if selected_conversation == "Percakapan Baru":
-        st.session_state.selected_conversation = str(datetime.now())
-        st.session_state.conversations[st.session_state.selected_conversation] = []
-        st.session_state.first_question = True
-        st.session_state.registered_no_hp = ""
-        st.session_state.nama = ""
-    else:
-        st.session_state.selected_conversation = selected_conversation
+        registered_no_hp = st.text_input("No Hp", value=st.session_state.registered_no_hp, placeholder="+62")
 
-    conversation_history = st.session_state.conversations[
-        st.session_state.selected_conversation
-    ]
-
-    registered_no_hp = st.text_input("Masukkan nomor HP terdaftar Anda:")
-
-    if registered_no_hp:
-        st.session_state.registered_no_hp = registered_no_hp
+        if registered_no_hp:
+            st.session_state.registered_no_hp = registered_no_hp
+            if registered_no_hp not in st.session_state.hp_history:
+                st.session_state.hp_history.append(registered_no_hp)
+            index = meiliClient.index("customer")
+            filter_cond = f"no_hp = '{registered_no_hp}'"
+            results = index.search("", {"limit": 1, "filter": filter_cond})
+            try:
+                st.session_state.nama = results['hits'][0]['nama_customer']
+                st.success(f"Selamat datang, Kak {st.session_state.nama} 😊")
+            except (KeyError, IndexError):
+                st.session_state.nama = ''
+                st.warning(f"Nomor HP terdaftar: {registered_no_hp}")
         
-        index = meiliClient.index("customer")
-        filter_cond = f"""no_hp = '{registered_no_hp}'"""
-        results = index.search("", {"limit": 1, "filter": filter_cond})
-        try:
-            nama_customer = results['hits'][0]['nama_customer']
-        except (KeyError, IndexError):
-            nama_customer = ""
-        st.session_state.nama = nama_customer
 
-        
-        if nama_customer:
-            st.success(f"Selamat datang, Kak {nama_customer} 😊")
-        else:
-            st.success(f"Nomor HP terdaftar: {registered_no_hp}")
+    if st.session_state.selected_conversation is None:
+        reset_conversation()
 
-    question = st.text_input("Masukkan pertanyaan Anda:")
+    conversation_history = st.session_state.conversations[st.session_state.selected_conversation]
+
+   
+
+    # Membuat area chat yang bisa discroll
+    chat_container = st.container()
+    with chat_container:
+        st.title("Kanita Chatbot - PT. Knitto Textile Indonesia")
+        st.subheader("Virtual Assistant")
+        for chat in conversation_history:
+            with st.chat_message("user"):
+                st.write(chat['user'])
+            with st.chat_message("assistant"):
+                st.write(chat['kanita'])
+
+    question = st.chat_input("Masukkan pertanyaan Anda:")
 
     if question:
-        if registered_no_hp:
-            answer = generate_answer_without_embed(
-            question, st.session_state.first_question, nohp=registered_no_hp,
+        answer = generate_answer_without_embed(
+            question,
+            st.session_state.first_question,
+            nohp=st.session_state.registered_no_hp,
             nama_customer=st.session_state.nama
         )
-        else:
-            answer = generate_answer_without_embed(
-            question, st.session_state.first_question, nohp=registered_no_hp,
-            nama_customer=st.session_state.nama)
         conversation_history.append({"user": question, "kanita": answer})
-
         st.session_state.first_question = False
 
-        st.write("Jawaban dari Kanita:")
-        type_effect(answer, speed=0.01)
+        with chat_container:
+            with st.chat_message("user"):
+                st.write(question)
+            with st.chat_message("assistant"):
+                type_effect(answer, speed=0.01)
 
-    st.subheader("Riwayat Percakapan:")
-    for chat in reversed(conversation_history):
-        st.text(f"🧑 : {chat['user']}")
-        st.text(f"🤖 : {chat['kanita']}")
-
-    if st.button("Mulai Percakapan Baru"):
-        reset_conversation()
-        st.success("Percakapan baru telah dimulai!")
 
 if __name__ == "__main__":
     main()

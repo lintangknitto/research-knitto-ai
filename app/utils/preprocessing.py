@@ -1,5 +1,4 @@
 from config.meilisearch_client import meiliClient
-from spellchecker import SpellChecker
 
 
 def get_data_meili(type: str):
@@ -13,12 +12,11 @@ def get_data_meili(type: str):
 def preprocessing_text(text: str, intent: str) -> str:
     fabric_related_intent = ["stok", "price_list"]
 
-    spell = SpellChecker()
 
     text = text.lower()
     words = text.split()
 
-    corrected_words = [spell.correction(word) for word in words]
+    corrected_words = words
 
     relevant_words = []
     data_lexicon = []
