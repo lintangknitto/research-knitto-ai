@@ -126,7 +126,8 @@ def mapping_data_cabang(data):
             {
                 "nama_cabang": item["nama_cabang"],
                 "kota": item["kota"],
-                "alamat": item["alamat"]
+                "alamat": item["alamat"],
+                "link_gmap": item['link_gmap']
             }
         )
 
@@ -135,7 +136,8 @@ def mapping_data_cabang(data):
             fieldnames = [
                 "nama_cabang",
                 "kota",
-                "alamat"
+                "alamat",
+                "link_gmap"
             ]
             writer = csv.DictWriter(output, fieldnames=fieldnames)
 

@@ -55,7 +55,6 @@ def generate_answer_without_embed(
     
     try:
         response = generate_response(model="gemini-1.5-flash", prompt=prompt, id='GENERATE CHAT')
-        print('CHAT', response)
         return response
     except Exception as e:
         return f"Error 2: {e}"

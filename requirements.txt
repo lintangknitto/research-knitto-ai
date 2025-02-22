@@ -6,3 +6,6 @@ pytz
 meilisearch
 python-dotenv
 openai
+tiktoken
+Sastrawi
+fuzzywuzzy[accelerate]
