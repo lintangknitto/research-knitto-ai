@@ -108,7 +108,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
 def get_context(intent: str, question: str, nohp: str, first_intent=""):
     memory = get_memory_from_meili(intent, question, nohp, first_intent)
     
-    context = "Tidak terdapat data"
+    context = "Tidak terdapat datanya"
     if len(memory) > 0:
         context = mapping_memory(intent=intent, data=memory)
     
