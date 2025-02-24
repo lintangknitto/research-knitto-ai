@@ -1,17 +1,18 @@
 import re
 import time
-from utils.pre_processing import pre_processing
-from config.meilisearch_client import meiliClient
-from utils.mapping_memory import mapping_memory
+from app.utils.pre_processing import pre_processing
+from app.config.meilisearch_client import meiliClient
+from app.utils.mapping_memory import mapping_memory
+
 
 def get_no_order(text):
-    data_cabang = meiliClient.index('cabang').search('')
+    data_cabang = meiliClient.index("cabang").search("")
 
     list_kode = set()
 
-    for dc in data_cabang['hits']:
-        list_kode.add(dc['kode_order'].lower())
-        list_kode.add(dc['kode_orderkatalog'].lower())
+    for dc in data_cabang["hits"]:
+        list_kode.add(dc["kode_order"].lower())
+        list_kode.add(dc["kode_orderkatalog"].lower())
 
     text = text.lower()
     words = text.split()
@@ -19,8 +20,8 @@ def get_no_order(text):
     for word in words:
         for kode in list_kode:
             if word.startswith(kode):
-                digits_part = word[len(kode):]
-                
+                digits_part = word[len(kode) :]
+
                 if digits_part.isdigit():
                     return word
     return ""
@@ -43,7 +44,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         query = ""
         if intent in list_spesifik_intent:
             query = pre_processing(text=question, intent=intent)
-        
+
         filter_condition = ""
         print(f"Query yang diproses: {query}")
 
@@ -67,7 +68,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
             limit = 2
         elif intent == "status_order" or intent == "cek_resi":
             no_order = get_no_order(question)
-            print('NO_ORDER', no_order)
+            print("NO_ORDER", no_order)
             if no_order:
                 filter_condition = f"no_order = '{no_order}' AND no_hp = '{nohp}'"
             else:
@@ -83,13 +84,13 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
                 conditions.append(f"cabang = '{cabang}'")
 
             filter_condition = " AND ".join(conditions) if conditions else ""
-        elif intent == 'cabang':
-            index_selected = 'cabang'
+        elif intent == "cabang":
+            index_selected = "cabang"
             limit = 10
         else:
             pass
-        
-        print('HASIL FILTER', filter_condition)
+
+        print("HASIL FILTER", filter_condition)
         index = meiliClient.index(index_selected)
 
         start_time = time.time()
@@ -97,7 +98,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         end_time = time.time()
 
         response_time = (end_time - start_time) * 1000
-        print("response time meilisearch: ", response_time, ' ms')
+        print("response time meilisearch: ", response_time, " ms")
 
         return results["hits"]
 
@@ -105,11 +106,12 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
         print(f"Error saat mengambil data dari MeiliSearch: {e}")
         return []
 
+
 def get_context(intent: str, question: str, nohp: str, first_intent=""):
     memory = get_memory_from_meili(intent, question, nohp, first_intent)
-    
+
     context = "Tidak terdapat datanya"
     if len(memory) > 0:
         context = mapping_memory(intent=intent, data=memory)
-    
+
     return context

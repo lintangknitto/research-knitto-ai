@@ -8,4 +8,7 @@ python-dotenv
 openai
 tiktoken
 Sastrawi
-fuzzywuzzy[accelerate]
+levenshtein
+fuzzywuzzy[speedup]
+fastapi 
+uvicorn

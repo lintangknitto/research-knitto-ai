@@ -1,6 +1,7 @@
-from helpers.get_time import get_time_of_day
-from utils.get_memory import get_no_order
-from utils.get_memory import get_context
+from app.helpers.get_time import get_time_of_day
+from app.utils.get_memory import get_no_order
+from app.utils.get_memory import get_context
+import json
 
 
 INTENT_PROMPTS = {
@@ -25,9 +26,27 @@ context:
 Berikut pertanyaan yang harus kamu jawab: {question}, jawab dengan baik dan jangan sampai context terbawa secara utuh
 """
 
+MAIN_PROMPT_TEMPLATE_OPENAI = r"""Kamu adalah Kanita Virtual Assistant Knitto Textile Indonesia, yang merupakah Ahli Customer Service.
+Tugas kamu adalah membantu user untuk menjawab pertanyaan. Gunakan bahasa yang ramah, profesional dan gunakan sedikit emoji untuk menunjukan perasaan.
+Perlu kamu ketahui untuk menghindari jawaban dengan, frasa seperti 'berdasarkan data kamu' atau yang serupa, mengulangi pertanyaan, jawaban tidak relavan.
+Selalu pastikan untuk menyebut user dengan "Kak". Buat agar user tidak merasa kaku. Ruang lingkup kamu hanya terkait dengan Knitto Textile Indonesia. Selalu minta customer bertanya kembali jika belum terima kasih.
+Gunakan format berikut ini jika berkaitan dengan pertanyaan: {intent_prompt}
+{greeting}
+context:
+{data_customer}
+{context}
+{informasi_cabang}
+Berikut pertanyaan yang harus kamu jawab: {question}, jawab dengan baik dan jangan sampai context terbawa secara utuh
+"""
+
 
 def prompt_generator(
-    question: str, intent: str, first_chat: bool, no_hp: str, first_intent: str, nama_customer=""
+    question: str,
+    intent: str,
+    first_chat: bool,
+    no_hp: str,
+    first_intent: str,
+    nama_customer="",
 ):
     try:
         time_of_day = get_time_of_day()
@@ -37,11 +56,11 @@ def prompt_generator(
             if first_chat
             else ""
         )
-        
+
         data_cabang = ""
         if intent == "faq":
             data_cabang = get_context(intent="cabang", question="", nohp="")
-            
+
         informasi_cabang = ""
         if data_cabang != "":
             informasi_cabang = (
@@ -49,9 +68,9 @@ def prompt_generator(
                 + data_cabang
                 + ". Jika Customer berada tidak ada di cabang, sarankan cabang dengan alamat terdekat. Website: https://knitto.co.id. Customer portal untuk order online:https://portal.knitto.co.id"
             )
-        
+
         if not no_hp:
-            print('kadieee')
+            print("kadieee")
             prompt = MAIN_PROMPT_TEMPLATE.format(
                 data_customer="",
                 question=question,
@@ -61,9 +80,8 @@ def prompt_generator(
                 informasi_cabang=informasi_cabang,
             )
             print(prompt)
-            
-            return prompt.strip()
 
+            return prompt.strip()
 
         intent_prompt = INTENT_PROMPTS.get(intent, "").format(no_order=no_order)
 
@@ -71,10 +89,12 @@ def prompt_generator(
             f"nama customer yang dilayani: {nama_customer}" if nama_customer else ""
         )
 
-        context = get_context(intent=intent, question=question, nohp=no_hp, first_intent=first_intent)
+        context = get_context(
+            intent=intent, question=question, nohp=no_hp, first_intent=first_intent
+        )
 
-        print('context', context)
-        
+        print("context", context)
+
         prompt = MAIN_PROMPT_TEMPLATE.format(
             data_customer=data_customer,
             question=question,
@@ -85,8 +105,11 @@ def prompt_generator(
         )
 
         print("Generated Prompt:", prompt)
+        result = {"prompt": prompt, "context": context}
 
-        return prompt.strip()
+        result_json = json.dumps(result, ensure_ascii=False)
+
+        return result_json
 
     except ValueError as ve:
         print(f"ValueError: {ve}")

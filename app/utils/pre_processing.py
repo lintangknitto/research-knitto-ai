@@ -1,6 +1,6 @@
 import string
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from config.meilisearch_client import meiliClient
+from app.config.meilisearch_client import meiliClient
 from fuzzywuzzy import fuzz
 
 

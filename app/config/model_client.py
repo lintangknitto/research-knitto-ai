@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from openai import OpenAI
 import time
-from config.settings import GOOGLE_API_KEY, OPENAI_API_KEY
+from app.config.settings import GOOGLE_API_KEY, OPENAI_API_KEY
 
 
 def configure_gemini_model(
