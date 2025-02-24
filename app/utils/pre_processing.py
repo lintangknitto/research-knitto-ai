@@ -96,7 +96,6 @@ def stemming(tokens: list):
 
 
 def pre_processing(text: str, intent="kain"):
-
     lower_text = text.lower()
     data_lexicon = get_kamus_kata(intent=intent)
     matched_phrase = find_similar_text(lower_text, data_lexicon)

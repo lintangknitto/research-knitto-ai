@@ -3,7 +3,7 @@ import streamlit as st
 
 
 def detect_intent(question: str):
-    prompt = f"""Kamu adalah Intent Detection Expert. Tugas kamu adalah mendeteksi intent dari setiap pertanyaan atau kalimat yang dimasukan oleh user. Dalam mendeteksi intent, scope yang kamu miliki adalah sebagai berikut: greetings, thanks, stok, faq, cek_resi, status_order, price_list, kanita, faq. Jika menurut kamu kalimat yang diberikan tidak masuk kedalam scope diatas, maka bisa dimasukan saja sebagai faq. Berikut kalimat yang harus dideteksi : {question}. Jawab hanya intentnya saja, misalnya "stok". Dan jangan dijawab selain scope yang sudah disebutkan.
+    prompt = f"""Kamu adalah Intent Detection Expert. Tugas kamu adalah mendeteksi intent dari setiap pertanyaan atau kalimat yang dimasukan oleh user. Dalam mendeteksi intent, scope yang kamu miliki adalah sebagai berikut: greetings, thanks, stok, faq, status_order(tagihan, ongkir, ekspedisi), price_list, kanita, faq. Untuk pertanyaan yang hanya mengandung nomor order masukan sebagai status_order. Jika menurut kamu kalimat yang diberikan tidak masuk kedalam scope diatas, maka bisa dimasukan saja sebagai faq. Berikut kalimat yang harus dideteksi : {question}. Jawab hanya intentnya saja, misalnya "stok". Dan jangan dijawab selain scope yang sudah disebutkan.
     """
     
     try:
@@ -14,7 +14,6 @@ def detect_intent(question: str):
             "thanks",
             "stok",
             "faq",
-            "cek_resi",
             "status_order",
             "price_list",
             "kanita",
