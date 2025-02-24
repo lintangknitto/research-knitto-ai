@@ -39,7 +39,10 @@ def get_cabang(text):
 def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""):
     limit = 5
     try:
-        query = pre_processing(text=question, intent=intent)
+        list_spesifik_intent = ["stok", "price_list", "faq"]
+        query = ""
+        if intent in list_spesifik_intent:
+            query = pre_processing(text=question, intent=intent)
         
         filter_condition = ""
         print(f"Query yang diproses: {query}")
@@ -105,7 +108,7 @@ def get_memory_from_meili(intent: str, question: str, nohp: str, first_intent=""
 def get_context(intent: str, question: str, nohp: str, first_intent=""):
     memory = get_memory_from_meili(intent, question, nohp, first_intent)
     
-    context = ""
+    context = "Tidak terdapat data"
     if len(memory) > 0:
         context = mapping_memory(intent=intent, data=memory)
     
