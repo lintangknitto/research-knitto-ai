@@ -5,7 +5,7 @@ from utils.get_memory import get_context
 
 INTENT_PROMPTS = {
     "notfound": r"""Buat penyampaian tentang tidak ditemukan dengan ramah.""",
-    "status_order": r"""Jika terdapat list order pada context, gunakan format sebagai berikut. Jika pertanyaan seputar status order, untuk list > 1, **no ordernya** : **status ordernya**. Untuk list hanya 1, - No Order : **no_order** \n- Status Order: **status_order** \n- Tagihan: **tagihan** \n- Ongkir: **ongkir** \n- Total Bayar: **total_bayar**. Jika pertanyaan seputar resi, untuk list > 1, **no ordernya** : **no resinya**. Untuk list hanya 1, - No Order : **no_order** \n- Status Order: **status_order** \n- Ongkir: **ongkir** \n- No Resi: **no_resi** \n- Ekspedisi: **ekspedisi**. Jika listnya > 1, tawarkan detailnya dengan minta nomer ordernya. Dan, apabila tidak terdapat list order, sampaikan kalo tidak ada order yang terdaftar dengan nomer telepon.""",
+    "status_order": r"""Jika terdapat list order pada context, gunakan format sebagai berikut. Jika pertanyaan seputar status order, untuk list > 1, **no ordernya** : **status ordernya**. Untuk list hanya 1, - No Order : **no_order** \n- Status Order: **status_order** \n- Tagihan: **tagihan** \n- Total Bayar: **total_bayar**. Jika pertanyaan seputar resi, untuk list > 1, **no ordernya** : **no resinya**. Untuk list hanya 1, - No Order : **no_order** \n- Status Order: **status_order** \n- Ongkir: **ongkir** \n- No Resi: **no_resi** \n- Ekspedisi: **ekspedisi**. Jika listnya > 1, tawarkan detailnya dengan minta nomer ordernya. Dan, apabila tidak terdapat list order, sampaikan kalo tidak ada order yang terdaftar dengan nomer telepon.""",
     "cek_resi": r"""Nomor Resi untuk "no_order" : **no_resi** , buat lebih interaktif.""",
     "stok": r"""Lakukan grouping berdasarkan cabang dan nama kain. Untuk pertanyaan yang cukup general atau tidak spesifik sampaikan untuk detailnya ada di link, dan sampaikan beberapa stok contoh sesuai yang ada di konteks. Penulisan stok untuk KG tulis menggunakan aslinya, untuk ROLL ditulis bulat misal 10 ROLL. Tidak usah tampilkan stok yang tidak sesuai pertanyaan. Untuk mendapatkan informasi lebih lengkap mengenai stok dapat dilihat melalui link berikut: https://stock.knitto.co.id""",
     "price_list": r"""Pricelist cabang : 'cabang'. 1. **nama_kain - jenis_warna** \n- Harga Rollan :  'harga_rollan' \n- Harga >= 5 Kg : 'harga_diatas' \n- Harga < 5 Kg : 'harga_dibawah' Apabila lebih dari 1 nama kain maka kelompokan dengan nama kain dan apabila terdapat warna yang harganya sama pada suatu nama kain maka gabungkan saja dalam list. Buat lebih interaktif, tapi tidak usah terlalu banyak emoji.""",
@@ -18,11 +18,11 @@ Perlu kamu ketahui untuk menghindari jawaban dengan, frasa seperti 'berdasarkan 
 Selalu pastikan untuk menyebut user dengan "Kak". Buat agar user tidak merasa kaku. Ruang lingkup kamu hanya terkait dengan Knitto Textile Indonesia. Selalu minta customer bertanya kembali jika belum terima kasih.
 Gunakan format berikut ini jika berkaitan dengan pertanyaan: {intent_prompt}
 {greeting}
+context:
 {data_customer}
-context: 
 {context}
 {informasi_cabang}
-Berikut pertanyaan yang harus kamu jawab: {question}
+Berikut pertanyaan yang harus kamu jawab: {question}, jawab dengan baik dan jangan sampai context terbawa secara utuh
 """
 
 
